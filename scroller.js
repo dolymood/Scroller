@@ -195,7 +195,7 @@
             v: true,
             x: 0,
             y: 0,
-            easing: 'swing',
+            easing: 'easeOut',
             onBeforeScrollStart: function(e) { e.preventDefault(); },
             onScrollStart: null,
             onBeforeScrollMove: null,
@@ -291,6 +291,8 @@
             this.touched = true;
             this.startX = e.pageX;
             this.startY = e.pageY;
+            this.posX = this.x;
+            this.posY = this.y;
             this._bind(MOVE_EV);
             this._bind(END_EV);
             this._bind(CANCEL_EV);
@@ -328,6 +330,7 @@
             this.toY = this.posY;
             if (this.opts.h) {
                 this.speedX = len > 1 ? 1 * (this.posX - step[1]) / diff : 0;
+                this.time = Mth.abs(this.speedX) * 200;
                 this.toX = this.posX + this.time * this.speedX;
             }
             if (this.opts.v) {
