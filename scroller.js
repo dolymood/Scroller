@@ -56,26 +56,11 @@
             }
         };
     }
-    if (!Function.prototype.bind) {
-        Function.prototype.bind = function(scope) {
-            var that = this;
-            scope || (scope = win);
-            var args = slice.call(arguments, 1);
-            return function() {
-                var newArg = args.concat();
-                newArg.push.apply(newArg, arguments);
-                that.apply(scope, newArg);
-            };
-        };
-    }
 
-    function isObject(obj) {
-        return Object(obj) === obj;
-    }
     function merge(obj) {
         var args = slice.call(arguments, 1);
         args.forEach(function(o) {
-            if (isObject(o)) {
+            if (Object(obj) === obj) {
                 for (var key in o) {
                     if (o.hasOwnProperty(key)) {
                         obj[key] = o[key];
@@ -142,7 +127,7 @@
         }
         this.scrollerEle = document.createElement('div');
         this.scollerEleStyle = this.scrollerEle.style;
-        this.scollerEleStyle.cssText = 'position:absolute;z-index:1000;top:0;right:1px;width:5px;border-radius:3px;background-color:rgba(0,0,0,.7)';
+        this.scollerEleStyle.cssText = 'position:absolute;z-index:1000;top:0;right:1px;width:5px;border-radius:3px;background-color:rgba(0,0,0,.7);' + translateZ;
         this.scollerEleStyle.height = (this.ele.offsetHeight * this.ele.offsetHeight/this.scroller.offsetHeight) + 'px';
         this.ele.appendChild(this.scrollerEle);
         this._bind(RESIZE_EV, win);
@@ -182,18 +167,20 @@
             return hasTouch ? (e.touches.length ? e.touches[0] : e) : e;
         },
 
+        getCmpOff: function(offx, tp) {
+            return (offx > 0          ? (offx *= 0.5) :
+                    offx < this[tp]   ? (this[tp] + (offx - this[tp]) * 0.5) :
+                    offx);
+        },
+
         _pos: function(offx, offy) {
             if (this.opts.h) {
-                offx = (offx > 0           ? (offx *= 0.5) :
-                        offx < this.minX   ? (this.minX + (offx - this.minX) * 0.5) :
-                        offx);
+                offx = this.getCmpOff(offx, 'minX');
             } else {
                 offx = 0;
             }
             if (this.opts.v) {
-                offy = (offy > 0           ? (offy *= 0.5) :
-                        offy < this.minY   ? (this.minY + (offy - this.minY) * 0.5) :
-                        offy);
+                offy = this.getCmpOff(offy, 'minY');
                 if (offy > 0) {
                     this.scollerEleStyle.top = '0px';
                 } else if (offy < this.minY) {
@@ -233,6 +220,19 @@
             this.steps.push([(originE.timeStamp || Date.now()), this.posX, this.posY]);
         },
 
+        _cmpSpeed: function(diff, len, step) {
+            if (this.opts.h) {
+                this.speedX = len > 1 ? 1 * (this.posX - step[1]) / diff : 0;
+                this.time = Mth.abs(this.speedX) * 200;
+                this.toX = this.posX + this.time * this.speedX;
+            }
+            if (this.opts.v) {
+                this.speedY = len > 1 ? 1 * (this.posY - step[2]) / diff : 0;
+                this.time = Mth.abs(this.speedY) * 200;
+                this.toY = this.posY + this.time * this.speedY * 2;
+            }
+        },
+
         _end: function(e, originE) {
             var steps = this.steps;
             var t = originE.timeStamp || Date.now();
@@ -246,21 +246,10 @@
                     break;
                 }  
             }
-            var step = steps[0];
-            var diff = t - step[0];
             this.time = 200;
             this.toX = this.posX;
             this.toY = this.posY;
-            if (this.opts.h) {
-                this.speedX = len > 1 ? 1 * (this.posX - step[1]) / diff : 0;
-                this.time = Mth.abs(this.speedX) * 200;
-                this.toX = this.posX + this.time * this.speedX;
-            }
-            if (this.opts.v) {
-                this.speedY = len > 1 ? 1 * (this.posY - step[2]) / diff : 0;
-                this.time = Mth.abs(this.speedY) * 200;
-                this.toY = this.posY + this.time * this.speedY * 2;
-            }
+            this._cmpSpeed(t - steps[0][0], len, steps[0]);
             this.moving = false;
             this.x = this.posX;
             this.y = this.posY;
@@ -271,64 +260,54 @@
             this._unbind(CANCEL_EV);
         },
 
-        _calSpeed1: function() {
+        _calPos: function(per, dir) {
+            var x = dir === 'h' ? 'x' : 'y', X = x.toUpperCase();
+            if (this.opts[dir] && Mth.abs(this[x] - this['to' + X]) > 2 && this['speed' + X]) {
+                this[x] = this['pos' + X] + (this['to' + X] - this['pos' + X]) * this.easing(per);
+            } else {
+                this['speed' + X] = 0;
+            }
+        },
+
+        _calAni: function() {
             var per = (Date.now() - this.steps[this.steps.length - 1][0]) / this.time;
             if (per > 1) per = 1;
-            if (this.opts.h && Mth.abs(this.x - this.posX) > 5 && this.speedX) {
-                this.y = this.posY + (this.toY - this.posY) * this.easing(per);
-            } else {
-                this.speedX = 0;
-            }
-            if (this.opts.v && Mth.abs(this.y - this.toY) > 5 && this.speedY) {
-                this.y = this.posY + (this.toY - this.posY) * this.easing(per);
-            } else {
-                this.speedY = 0;
-            }
+            this._calPos(per, 'h');
+            this._calPos(per, 'v');
             this._pos(this.x, this.y);
         },
 
-        _calSpeed2: function() {
-            if (this.opts.h) {
-                if (this.x > 0) {
-                    this.speedX = 0;
-                    this.x *= 0.8;
-                    if (this.x < 4)
-                        this.x = 0;
+        _cmpOut: function(dir) {
+            var x = dir === 'h' ? 'x' : 'y', X = x.toUpperCase();
+            if (this.opts[dir]) {
+                if (this[x] > 0) {
+                    this['speed' + X] = 0;
+                    this[x] *= 0.8;
+                    if (this[x] < 4)
+                        this[x] = 0;
                     else
-                        this.x -= 4;
-                } else if (this.x < this.minX){
-                    this.speedX = 0;
-                    this.x += (this.minX - this.x) * 0.2;
-                    if (this.x + 4 > this.minX)
-                        this.x = this.minX;
+                        this[x] -= 4;
+                } else if (this[x] < this['min' + X]) {
+                    this['speed' + X] = 0;
+                    this[x] += (this['min' + X] - this[x]) * 0.2;
+                    if (this[x] + 4 > this['min' + X])
+                        this[x] = this['min' + X];
                     else
-                        this.x += 4;
+                        this[x] += 4;
                 }
             }
-            if (this.opts.v) {
-                if (this.y > 0) {
-                    this.speedY = 0;
-                    this.y *= 0.8;
-                    if (this.y < 4)
-                        this.y = 0;
-                    else
-                        this.y -= 4;
-                } else if (this.y < this.minY){
-                    this.speedY = 0;
-                    this.y += (this.minY - this.y) * 0.2;
-                    if (this.y + 4 > this.minY)
-                        this.y = this.minY;
-                    else
-                        this.y += 4;
-                }
-            }
+        },
+
+        _calOut: function() {
+            this._cmpOut('h');
+            this._cmpOut('v');
             this._pos(this.x, this.y);
         },
 
         _run: function() {
             if (!this.moving) {
-                this._calSpeed1();
-                this._calSpeed2();
+                this._calAni();
+                this._calOut();
                 this.animating = true;
                 if (this.speedX != 0 || this.speedY != 0 || this.x < this.minX || this.x > 0 ||
                     this.y < this.minY || this.y > 0) {
