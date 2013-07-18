@@ -218,6 +218,10 @@
         if (!hasTouch) {
             this._bind('mouseout', this.ele);
         }
+        this.scrollerEle = document.createElement('div');
+        this.scrollerEle.style.cssText = 'position:absolute;z-index:1000;top:0;right:1px;width:5px;border-radius:3px;background-color:rgba(0,0,0,.7)';
+        this.scrollerEle.style.height = (this.ele.offsetHeight * this.ele.offsetHeight/this.scroller.offsetHeight) + 'px';
+        this.ele.appendChild(this.scrollerEle);
         this._bind(RESIZE_EV, win);
         this._bind(START_EV);
         this.refresh();
@@ -267,9 +271,18 @@
                 offy = (offy > 0           ? (offy *= 0.5) :
                         offy < this.minY   ? (this.minY + (offy - this.minY) * 0.5) :
                         offy);
+                if (offy > 0) {
+                    this.scrollerEle.style.top = '0px';
+                } else if (offy < this.minY) {
+                    this.scrollerEle.style.top = (this.ele.offsetHeight - this.scrollerEle.offsetheight) + 'px';
+                } else {
+                    this.scrollerEle.style.top = Mth.abs(this.ele.offsetHeight * offy/this.scroller.offsetHeight) + 'px';
+                }
+                
             } else {
                 offy = 0;
             }
+
             this.scollerStyle[vendor + 'Transform'] = 'translate(' + offx + 'px, ' + offy + 'px)' + ' ' + translateZ;
         },
 
