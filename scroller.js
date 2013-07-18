@@ -42,8 +42,7 @@
                 clearTimeout;
         })(),
         has3d = prefixStyle('perspective') in dummyStyle,
-        translateZ = has3d ? ' translateZ(0)' : '',
-        _devicePixelRatio = win.devicePixelRatio;
+        translateZ = has3d ? ' translateZ(0)' : '';
     function prefixStyle(style) {
         if (vendor === '') return style;
         style = style.charAt(0).toUpperCase() + style.substr(1);
@@ -347,31 +346,14 @@
         },
 
         _calSpeed1: function() {
+            var per = (Date.now() - this.steps[this.steps.length - 1][0]) / this.time;
+            if (per > 1) per = 1;
             if (this.opts.h && Mth.abs(this.x - this.posX) > 5 && this.speedX) {
-                if (this.speedX > 0.4) {
-                    this.speedX -= 0.4;
-                    this.x += this.speedX * 0.1 + Mth.min(15, this.speedX);
-                } else if (this.speedX < -0.4) {
-                    this.speedX += 0.4;
-                    this.x += this.speedX * 0.1 + Mth.max(-15, this.speedX);
-                } else {
-                    this.speedX = 0;
-                }
+                this.y = this.posY + (this.toY - this.posY) * this.easing(per);
             } else {
                 this.speedX = 0;
             }
             if (this.opts.v && Mth.abs(this.y - this.toY) > 5 && this.speedY) {
-                // if (this.speedY > 0.4) {
-                //     this.speedY -= 0.4;
-                //     this.y += this.speedY * 0.1 + Mth.min(15, this.speedY);
-                // } else if (this.speedY < -0.4) {
-                //     this.speedY += 0.4;
-                //     this.y += this.speedY * 0.1 + Mth.max(-15, this.speedY);
-                // } else {
-                //     this.speedY = 0;
-                // }
-                var per = (Date.now() - this.steps[this.steps.length - 1][0]) / this.time;
-                if (per > 1) per = 1;
                 this.y = this.posY + (this.toY - this.posY) * this.easing(per);
             } else {
                 this.speedY = 0;
@@ -422,15 +404,6 @@
                 this._calSpeed1();
                 this._calSpeed2();
                 this.animating = true;
-                // 只要还有速度 或者 超出正常范围 就需要继续
-                // if (this.speedX != 0 || this.speedY != 0 ||
-                //     this.x < this.minX || this.x > 0 ||
-                //     this.y < this.minY || this.y > 0) {
-                //     this._frame = nextFrame(this._run.bind(this));
-                // } else {
-                //     if (this.opts.onScrollEnd) this.opts.onScrollEnd.call(this, e);
-                //     this.animating = false;
-                // }
                 if (this.speedX != 0 || this.speedY != 0 || this.x < this.minX || this.x > 0 ||
                     this.y < this.minY || this.y > 0) {
                     this._frame = nextFrame(this._run.bind(this));
