@@ -24,19 +24,6 @@
         END_EV = hasTouch ? 'touchend' : 'mouseup',
         CANCEL_EV = hasTouch ? 'touchcancel' : 'mouseup',
         RESIZE_EV = 'onorientationchange' in win ? 'orientationchange' : 'resize',
-        TRNEND_EV = (function () {
-            if ( vendor === false ) return false;
-
-            var transitionEnd = {
-                    ''          : 'transitionend',
-                    'webkit'    : 'webkitTransitionEnd',
-                    'Moz'       : 'transitionend',
-                    'O'         : 'oTransitionEnd',
-                    'ms'        : 'MSTransitionEnd'
-                };
-
-            return transitionEnd[vendor];
-        })(),
         nextFrame = (function() {
             return win.requestAnimationFrame ||
                 win.webkitRequestAnimationFrame ||
