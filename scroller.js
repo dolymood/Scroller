@@ -142,7 +142,7 @@
         }
         this.scrollerEle = document.createElement('div');
         this.scollerEleStyle = this.scrollerEle.style;
-        this.scollerEleStyle.cssText = 'position:absolute;z-index:1000;top:0;right:4px;width:5px;border-radius:3px;background-color:rgba(0,0,0,.7)';
+        this.scollerEleStyle.cssText = 'position:absolute;z-index:1000;top:0;right:1px;width:5px;border-radius:3px;background-color:rgba(0,0,0,.7)';
         this.scollerEleStyle.height = (this.ele.offsetHeight * this.ele.offsetHeight/this.scroller.offsetHeight) + 'px';
         this.ele.appendChild(this.scrollerEle);
         this._bind(RESIZE_EV, win);
