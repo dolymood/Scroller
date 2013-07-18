@@ -56,6 +56,18 @@
             }
         };
     }
+    if (!Function.prototype.bind) {
+        Function.prototype.bind = function(scope) {
+            var that = this;
+            scope || (scope = win);
+            var args = slice.call(arguments, 1);
+            return function() {
+                var newArg = args.concat();
+                newArg.push.apply(newArg, arguments);
+                that.apply(scope, newArg);
+            };
+        };
+    }
 
     function merge(obj) {
         var args = slice.call(arguments, 1);
