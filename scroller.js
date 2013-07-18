@@ -113,7 +113,6 @@
         if (!this.ele) throw 'ele must be an element';
         this.ele.style.overflow = 'hidden';
         this.scroller = this.ele.children[0];
-        this.scollerStyle = this.scroller.style;
         this.opts = {
             h: true,
             v: true,
@@ -142,8 +141,9 @@
             this._bind('mouseout', this.ele);
         }
         this.scrollerEle = document.createElement('div');
-        this.scrollerEle.style.cssText = 'position:absolute;z-index:1000;top:0;right:4px;width:5px;border-radius:3px;background-color:rgba(0,0,0,.7)';
-        this.scrollerEle.style.height = (this.ele.offsetHeight * this.ele.offsetHeight/this.scroller.offsetHeight) + 'px';
+        this.scollerEleStyle = this.scrollerEle.style;
+        this.scollerEleStyle.cssText = 'position:absolute;z-index:1000;top:0;right:4px;width:5px;border-radius:3px;background-color:rgba(0,0,0,.7)';
+        this.scollerEleStyle.height = (this.ele.offsetHeight * this.ele.offsetHeight/this.scroller.offsetHeight) + 'px';
         this.ele.appendChild(this.scrollerEle);
         this._bind(RESIZE_EV, win);
         this._bind(START_EV);
@@ -195,18 +195,17 @@
                         offy < this.minY   ? (this.minY + (offy - this.minY) * 0.5) :
                         offy);
                 if (offy > 0) {
-                    this.scrollerEle.style.top = '0px';
+                    this.scollerEleStyle.top = '0px';
                 } else if (offy < this.minY) {
-                    this.scrollerEle.style.top = (this.ele.offsetHeight - this.scrollerEle.offsetheight) + 'px';
+                    this.scollerEleStyle.top = (this.ele.offsetHeight - this.scrollerEle.offsetheight) + 'px';
                 } else {
-                    this.scrollerEle.style.top = Mth.abs(this.ele.offsetHeight * offy/this.scroller.offsetHeight) + 'px';
+                    this.scollerEleStyle.top = Mth.abs(this.ele.offsetHeight * offy/this.scroller.offsetHeight) + 'px';
                 }
-                
             } else {
                 offy = 0;
             }
 
-            this.scollerStyle[vendor + 'Transform'] = 'translate(' + offx + 'px, ' + offy + 'px)' + ' ' + translateZ;
+            this.scroller.style[vendor + 'Transform'] = 'translate(' + offx + 'px, ' + offy + 'px)' + ' ' + translateZ;
         },
 
         _start: function(e, originE) {
@@ -348,11 +347,11 @@
         _mouseout: function(e) {
             var t = e.relatedTarget;
             if (!t) {
-                this._end(e);
+                this._end(e, e);
                 return;
             }
             while (t = t.parentNode) if (t == this.ele) return;
-            this._end(e);
+            this._end(e, e);
         },
         
         _bind: function(type, el, bubble) {
