@@ -72,7 +72,7 @@
     function merge(obj) {
         var args = slice.call(arguments, 1);
         args.forEach(function(o) {
-            if (Object(obj) === obj) {
+            if (Object(o) === o) {
                 for (var key in o) {
                     if (o.hasOwnProperty(key)) {
                         obj[key] = o[key];
