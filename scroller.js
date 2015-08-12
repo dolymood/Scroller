@@ -204,7 +204,7 @@
                 offy = 0;
             }
 
-            this.scroller.style[vendor + 'Transform'] = 'translate(' + offx + 'px, ' + offy + 'px)' + ' ' + translateZ;
+            this.scroller.style[prefixStyle('transform')] = 'translate(' + offx + 'px, ' + offy + 'px)' + ' ' + translateZ;
         },
 
         _start: function(e, originE) {
